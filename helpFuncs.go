@@ -9,6 +9,7 @@ import (
 	"russiatravelapi"
 	"strconv"
 	"strings"
+	"log"
 )
 
 // taken from https://github.com/kennygrant/sanitize
@@ -99,4 +100,15 @@ func StringToLocation(coords string) russiatravelapi.Location {
 	loc.Latitude = one
 	loc.Longitude = two
 	return loc
+}
+
+func shortenDesc(desc string) string {
+	log.Printf("%s", "Description shorted")
+	for len(desc) > 2000 {
+		desc = desc[:len(desc)-1]
+		for string(desc[len(desc)-1]) != "." {
+			desc = desc[:len(desc)-1]
+		}
+	}
+	return desc
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/telegram-bot-api"
 	"log"
-	"reflect"
 	"russiatravelapi"
 	"strconv"
 )
@@ -38,7 +37,6 @@ func main() {
 
 			log.Printf("[%s] %d %s", UserName, ChatID, Text)
 			log.Print(update.Message.Location)
-			log.Printf("%s", reflect.TypeOf(Text))
 			switch {
 			case Text == "/start":
 				msg := tgbotapi.NewMessage(ChatID, "Hello, "+update.Message.From.FirstName+"!")
@@ -59,7 +57,6 @@ func main() {
 				break
 			default:
 				log.Printf("%s", "Default")
-				log.Printf("[%s] %d %s", UserName, ChatID, Text)
 				msg := tgbotapi.NewMessage(ChatID, "Give me your location!")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("I'm here!")))
@@ -79,7 +76,8 @@ func main() {
 				MAP := StringToLocation(data["coords"][callBack.Page])
 				// Send NewLocation or NewVenue?
 				msg := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
-				bot.Send(msg)
+				bot.Send(msg)			
+				log.Printf("%s", "Map sent")
 
 			}
 		}
@@ -89,9 +87,7 @@ func main() {
 func getPlaces(location string) (map[string]string, map[string][]string) {
 	radius := 10
 	response := getList(location, radius)
-	//fmt.Println(russiatravelapi.Len(response.Items[0].Item))
 	for russiatravelapi.Len(response.Items[0].Item) == 0 {
-		fmt.Println("Tryinggg")
 		radius += 40
 		response = getList(location, radius)
 	}
@@ -101,10 +97,11 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 		Places[strconv.Itoa(i)] = HTML(item.Name[0].Text)
 	}
 
-	//descs := russiatravelapi.GetReviews(response.Items[0].Item)
+	descs := russiatravelapi.GetReviews(response.Items[0].Item)
 	pics := russiatravelapi.GetPhotoLinks(response.Items[0].Item)
 	coords := russiatravelapi.GetCoordinates(response.Items[0].Item)
 	data := make(map[string][]string)
+	data["descs"] = descs
 	data["pics"] = pics
 	data["coords"] = coords
 	return Places, data
@@ -120,6 +117,7 @@ func getList(coords string, radius int) russiatravelapi.APIResponse {
 }
 
 func PlacesInline(Places map[string]string, data map[string][]string, page int) (string, tgbotapi.InlineKeyboardMarkup) {
+	log.Printf("%s", "PlacesInline called")
 	prevPage := 0
 	nextPage := 0
 	if page == 0 {
@@ -135,8 +133,13 @@ func PlacesInline(Places map[string]string, data map[string][]string, page int) 
 		nextPage = 0
 	}
 
+	description := HTML(data["descs"][page])
+	if len(description) > 2000 {
+		data["descs"][page] = shortenDesc(description)
+	}
+
 	str := Places[strconv.Itoa(page)] + "\n"
-	//str += HTML(descs[page]) + " \n"
+	str += HTML(data["descs"][page]) + " \n"
 	str += data["pics"][page]
 	kb := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(

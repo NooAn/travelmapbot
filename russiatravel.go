@@ -1,4 +1,4 @@
-package russiatravelapi
+package main
 
 import (
 	"encoding/xml"
