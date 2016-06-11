@@ -134,7 +134,7 @@ func PlacesInline(Places map[string]string, data map[string][]string, page int) 
 	}
 
 	description := HTML(data["descs"][page])
-	if len(description) > 2000 {
+	if len(description) > MIN_COUNT_SYMBOL {
 		data["descs"][page] = shortenDesc(description)
 	}
 
