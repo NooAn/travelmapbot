@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/telegram-bot-api"
 	"log"
-	"russiatravelapi"
+
 	"strconv"
 )
 
@@ -16,7 +16,7 @@ type CallbackQueryPageData struct {
 }
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI(Token)
+	bot, err := tgbotapi.NewBotAPI(TOKEN)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -87,7 +87,7 @@ func main() {
 func getPlaces(location string) (map[string]string, map[string][]string) {
 	radius := 10
 	response := getList(location, radius)
-	for russiatravelapi.Len(response.Items[0].Item) == 0 {
+	for Len(response.Items[0].Item) == 0 {
 		radius += 40
 		response = getList(location, radius)
 	}
@@ -97,9 +97,9 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 		Places[strconv.Itoa(i)] = HTML(item.Name[0].Text)
 	}
 
-	descs := russiatravelapi.GetReviews(response.Items[0].Item)
-	pics := russiatravelapi.GetPhotoLinks(response.Items[0].Item)
-	coords := russiatravelapi.GetCoordinates(response.Items[0].Item)
+	descs := GetReviews(response.Items[0].Item)
+	pics := GetPhotoLinks(response.Items[0].Item)
+	coords := GetCoordinates(response.Items[0].Item)
 	data := make(map[string][]string)
 	data["descs"] = descs
 	data["pics"] = pics
@@ -107,11 +107,11 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 	return Places, data
 
 }
-func getList(coords string, radius int) russiatravelapi.APIResponse {
-	newRequest := russiatravelapi.CreateRequestDependingOnRadius(radius, coords)
+func getList(coords string, radius int) APIResponse {
+	newRequest := CreateRequestDependingOnRadius(radius, coords)
 	xmlbody := xml.Header + string(newRequest)
-	body := russiatravelapi.SendRequest(xmlbody)
-	resp := russiatravelapi.GetResponse(body)
+	body := SendRequest(xmlbody)
+	resp := GetResponse(body)
 
 	return resp
 }
