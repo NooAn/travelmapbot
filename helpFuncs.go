@@ -6,7 +6,6 @@ import (
 	"github.com/telegram-bot-api"
 	"html"
 	"html/template"
-	"russiatravelapi"
 	"strconv"
 	"strings"
 	"log"
@@ -82,13 +81,13 @@ func FloatToString(input float64) string {
 	// to convert a float number to a string
 	return strconv.FormatFloat(input, 'f', 6, 64)
 }
-
-func StringToLocation(coords string) russiatravelapi.Location {
+//TODO optima
+func StringToLocation(coords string) Location {
 	coords = strings.Replace(coords, "\"", "", -1)
 	location := strings.Split(coords, ",")
-	loc := russiatravelapi.Location{}
-	one, err := strconv.ParseFloat(location[0], 64)
-	two, err2 := strconv.ParseFloat(location[1], 64)
+	loc := Location{}
+	lat, err := strconv.ParseFloat(location[0], 64)
+	lon, err2 := strconv.ParseFloat(location[1], 64)
 
 	if err != nil {
 		fmt.Println(err)
@@ -97,14 +96,14 @@ func StringToLocation(coords string) russiatravelapi.Location {
 	if err2 != nil {
 		fmt.Println(err)
 	}
-	loc.Latitude = one
-	loc.Longitude = two
+	loc.Latitude = lat 
+	loc.Longitude = lon
 	return loc
 }
 
 func shortenDesc(desc string) string {
 	log.Printf("%s", "Description shorted")
-	for len(desc) > 2000 {
+	for len(desc) > MIN_COUNT_SYMBOL {
 		desc = desc[:len(desc)-1]
 		for string(desc[len(desc)-1]) != "." {
 			desc = desc[:len(desc)-1]
