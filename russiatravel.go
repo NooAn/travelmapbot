@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -133,7 +132,7 @@ func CreateRequestDependingOnRadius(radius int, geo string) []byte {
 
 	output, err := xml.MarshalIndent(v, "  ", "    ")
 	if err != nil {
-		fmt.Println("error: %v\n", err)
+		Logf("error: %v\n", err)
 	}
 
 	return output
@@ -157,7 +156,7 @@ func GetResponse(body []byte) APIResponse {
 	response := APIResponse{}
 	err := xml.Unmarshal(body, &response)
 	if err != nil {
-		fmt.Println("error: %v", err)
+		Logf("error: %v", err)
 	}
 	return response
 }
@@ -166,6 +165,7 @@ func GetNames(items []Item) []string {
 	var res []string
 	for _, i := range items {
 		res = append(res, i.Name[0].Text)
+
 	}
 
 	return res
@@ -174,9 +174,8 @@ func GetNames(items []Item) []string {
 func GetPhotoLinks(items []Item) []string {
 	var res []string
 	for _, i := range items {
-		res = append(res, i.Image)
+			res = append(res, i.Image)
 	}
-
 	return res
 }
 
@@ -192,9 +191,8 @@ func GetCoordinates(items []Item) []string {
 func GetReviews(items []Item) []string {
 	var res []string
 	for _, i := range items {
-		res = append(res, i.Review[0].Data[0].Data)
+		res = append(res, i.Review[0].Data[0].Data)//FIXME
 	}
-
 	return res
 }
 
