@@ -90,10 +90,12 @@ func main() {
 			} else if callBack.Title == "showMap" {
 				MAP := StringToLocation(data["coords"][callBack.Page])
 				// Send NewLocation or NewVenue?
-				msg := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
+				farAway := strconv.Itoa(int(calculateDistance(GEO, data["coords"][callBack.Page]))) + " km away from you"
+				msg := tgbotapi.NewMessage(int64(update.CallbackQuery.From.ID), farAway)
 				bot.Send(msg)
-				//log.Printf("%s", "Map sent")
-				Log("Map sent")
+				msg2 := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
+				bot.Send(msg2)			
+				log.Printf("%s", "Map sent")
 
 			}
 		}

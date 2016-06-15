@@ -9,7 +9,11 @@ import (
 	"strconv"
 	"strings"
 	"log"
+	"math"
 )
+const (
+	EARTH_RADIUS = 6371
+	)	
 
 // taken from https://github.com/kennygrant/sanitize
 func HTML(s string) string {
@@ -111,3 +115,25 @@ func shortenDesc(desc string) string {
 	}
 	return desc
 }
+
+func calculateDistance(userLoc, placeLoc string) int {
+	userLocation := StringToLocation(userLoc)
+	placeLocation := StringToLocation(placeLoc)
+
+	dLat := (placeLocation.Latitude - userLocation.Latitude) * (math.Pi / 180.0)
+	dLon := (placeLocation.Longitude - userLocation.Longitude) * (math.Pi / 180.0)
+
+	lat1 := userLocation.Latitude * (math.Pi / 180.0)
+	lat2 := placeLocation.Latitude * (math.Pi / 180.0)
+
+	a1 := math.Sin(dLat/2) * math.Sin(dLat/2)
+	a2 := math.Sin(dLon/2) * math.Sin(dLon/2) * math.Cos(lat1) * math.Cos(lat2)
+
+	a := a1 + a2
+
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return int(EARTH_RADIUS * c)
+}
+
+
