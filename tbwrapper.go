@@ -1,22 +1,22 @@
 package main
 
 import (
-	"github.com/telegram-bot-api"
+	"fmt"
 	"log"
 	"os"
-	"fmt"
+
+	"github.com/telegram-bot-api"
 )
+
 type TBWrap struct {
 	bot     *tgbotapi.BotAPI
 	running bool
 }
 
-
 func (margelet *TBWrap) Run() error {
-	Log("bot run logger")
-
-	if (margelet.bot == nil) {
-		Log("bot nil")
+	fmt.Println("bot run logger")
+	if margelet.bot == nil {
+		fmt.Println("bot nil")
 		bot, err := tgbotapi.NewBotAPI(TOKEN_BOTLOGER)
 		if err != nil {
 			log.Panic(err)
@@ -30,7 +30,6 @@ func (margelet *TBWrap) Run() error {
 		Log(err.Error())
 		return err
 	}
-
 	for margelet.running {
 		select {
 		case update := <-updates:
@@ -49,21 +48,21 @@ func (margelet *TBWrap) Stop() {
 
 func (c *TBWrap) Send(currentChatId int64, msg string) {
 	tgmsg := tgbotapi.NewMessage(currentChatId, msg)
-	if (c.bot == nil) {
+	if c.bot == nil {
 		fmt.Println("Bot logger start....")
 		bot, err := tgbotapi.NewBotAPI(TOKEN_BOTLOGER)
 		if err != nil {
 			log.Panic(err)
 		}
 		c.bot = bot
-		Log("bot started")
+		fmt.Println("bot started")
 	}
 	c.bot.Send(tgmsg)
 }
 func SetLogFile() {
-	f, err := os.Create("/log/log_bot.txt")
+	f, err := os.Create("log_bot.txt")
 	if err != nil {
-		CheckErr(err,"logfile open failed")
+		CheckErr(err, "logfile open failed")
 	} else {
 		log.SetOutput(f)
 	}

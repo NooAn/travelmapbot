@@ -27,3 +27,4 @@ _testmain.go
 *.prof
 
 config.go
+log_bot.txt

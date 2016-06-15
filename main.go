@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/telegram-bot-api"
 	"log"
+
+	"github.com/telegram-bot-api"
 
 	"strconv"
 )
@@ -16,14 +17,13 @@ type CallbackQueryPageData struct {
 }
 
 func main() {
+
 	bot, err := tgbotapi.NewBotAPI(TOKEN)
 	if err != nil {
-		//log.Panic(err)
 		LogPanic(err)
 	}
 	SetLogFile()
 	bot.Debug = false
-	//log.Printf("Authorized on account %s", bot.Self.UserName)
 	Logf("Authorized on account %s", bot.Self.UserName)
 	var ucfg tgbotapi.UpdateConfig = tgbotapi.NewUpdate(0)
 	ucfg.Timeout = 60
@@ -39,7 +39,7 @@ func main() {
 
 			Logf("[%s] %d %s", UserName, ChatID, Text)
 			Logf("Location user: %v", update.Message.Location)
-			
+
 			name := update.Message.From.FirstName
 			if len(name) == 0 {
 				name = "Путешественник"
@@ -51,14 +51,14 @@ func main() {
 				bot.Send(msg)
 				msg = tgbotapi.NewMessage(ChatID, "Give me your location!")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("I'm here!")))
+					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Посмотреть, что рядом!")))
 				bot.Send(msg)
 				break
 			case Text == "/help":
-				Logf("/help "+UserName)
+				Logf("/help " + UserName)
 				msg := tgbotapi.NewMessage(ChatID, "Отправь мне координаты с мобильного телефона и я пришлю тебе интересные достопримичательности.")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("I'm here!")))
+					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Посмотреть, что рядом!")))
 				bot.Send(msg)
 			case update.Message.Location != nil:
 				//log.Printf("%s", "User sent location")
@@ -72,9 +72,9 @@ func main() {
 				break
 			default:
 				Log("Default, none action")
-				msg := tgbotapi.NewMessage(ChatID, "Give me your location!")
+				msg := tgbotapi.NewMessage(ChatID, "Give me your location, on Gps in mobile and click button down!")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("I'm here!")))
+					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Отправить координаты!")))
 				bot.Send(msg)
 				break
 			}
@@ -91,7 +91,7 @@ func main() {
 				MAP := StringToLocation(data["coords"][callBack.Page])
 				// Send NewLocation or NewVenue?
 				msg := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
-				bot.Send(msg)			
+				bot.Send(msg)
 				//log.Printf("%s", "Map sent")
 				Log("Map sent")
 
@@ -105,15 +105,15 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 	Places := make(map[string]string)
 	data := make(map[string][]string)
 	response := getList(location, radius)
-	if (response.Items==nil ){ // Если данные не пришли, то отдаем пустые, без этого условия падает
-		return Places,data
+	if response.Items == nil { // Если данные не пришли, то отдаем пустые, без этого условия падает
+		return Places, data
 	}
-	if Len(response.Items[0].Item) == 0{
+	if Len(response.Items[0].Item) == 0 {
 		radius += 190
 		response = getList(location, radius)
 	}
-	if ( response.Items==nil ){
-		return Places,data
+	if response.Items == nil {
+		return Places, data
 	}
 	for i, item := range response.Items[0].Item {
 		Places[strconv.Itoa(i)] = HTML(item.Name[0].Text)
