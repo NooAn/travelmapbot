@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"net/url"
 )
-
+//---------------------------------CONST----------------------------------------
+const MIN_COUNT_SYMBOL  = 2000
 // ------------------------------- TYPES ----------------------------------------
 
 // APIResponse is a response from the Russia.Travel API
