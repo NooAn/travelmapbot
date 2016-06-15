@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/telegram-bot-api"
 	"log"
+
+	"github.com/telegram-bot-api"
 
 	"strconv"
 )
@@ -16,13 +17,14 @@ type CallbackQueryPageData struct {
 }
 
 func main() {
+
 	bot, err := tgbotapi.NewBotAPI(TOKEN)
 	if err != nil {
-		log.Panic(err)
+		LogPanic(err)
 	}
+	SetLogFile()
 	bot.Debug = false
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
+	Logf("Authorized on account %s", bot.Self.UserName)
 	var ucfg tgbotapi.UpdateConfig = tgbotapi.NewUpdate(0)
 	ucfg.Timeout = 60
 	updates, err := bot.GetUpdatesChan(ucfg)
@@ -35,19 +37,32 @@ func main() {
 			ChatID := update.Message.Chat.ID
 			Text := update.Message.Text
 
-			log.Printf("[%s] %d %s", UserName, ChatID, Text)
-			log.Print(update.Message.Location)
+			Logf("[%s] %d %s", UserName, ChatID, Text)
+			Logf("Location user: %v", update.Message.Location)
+
+			name := update.Message.From.FirstName
+			if len(name) == 0 {
+				name = "Путешественник"
+			}
 			switch {
 			case Text == "/start":
-				msg := tgbotapi.NewMessage(ChatID, "Hello, "+update.Message.From.FirstName+"!")
+
+				msg := tgbotapi.NewMessage(ChatID, "Hello, "+name+"!")
 				bot.Send(msg)
 				msg = tgbotapi.NewMessage(ChatID, "Give me your location!")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("I'm here!")))
+					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Посмотреть, что рядом!")))
 				bot.Send(msg)
 				break
+			case Text == "/help":
+				Logf("/help " + UserName)
+				msg := tgbotapi.NewMessage(ChatID, "Отправь мне координаты с мобильного телефона и я пришлю тебе интересные достопримичательности.")
+				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Посмотреть, что рядом!")))
+				bot.Send(msg)
 			case update.Message.Location != nil:
-				log.Printf("%s", "User sent location")
+				//log.Printf("%s", "User sent location")
+				Logf("User %s sent location", update.Message.From.FirstName)
 				GEO = LocationToString(update.Message.Location)
 				namesList, data := getPlaces(GEO)
 				str, kb := PlacesInline(namesList, data, 0)
@@ -56,10 +71,10 @@ func main() {
 				bot.Send(msg)
 				break
 			default:
-				log.Printf("%s", "Default")
-				msg := tgbotapi.NewMessage(ChatID, "Give me your location!")
+				Log("Default, none action")
+				msg := tgbotapi.NewMessage(ChatID, "Give me your location, on Gps in mobile and click button down!")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("I'm here!")))
+					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Отправить координаты!")))
 				bot.Send(msg)
 				break
 			}
@@ -76,8 +91,9 @@ func main() {
 				MAP := StringToLocation(data["coords"][callBack.Page])
 				// Send NewLocation or NewVenue?
 				msg := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
-				bot.Send(msg)			
-				log.Printf("%s", "Map sent")
+				bot.Send(msg)
+				//log.Printf("%s", "Map sent")
+				Log("Map sent")
 
 			}
 		}
@@ -86,13 +102,19 @@ func main() {
 
 func getPlaces(location string) (map[string]string, map[string][]string) {
 	radius := 10
+	Places := make(map[string]string)
+	data := make(map[string][]string)
 	response := getList(location, radius)
-	for Len(response.Items[0].Item) == 0 {
-		radius += 40
+	if response.Items == nil { // Если данные не пришли, то отдаем пустые, без этого условия падает
+		return Places, data
+	}
+	if Len(response.Items[0].Item) == 0 {
+		radius += 190
 		response = getList(location, radius)
 	}
-
-	Places := make(map[string]string)
+	if response.Items == nil {
+		return Places, data
+	}
 	for i, item := range response.Items[0].Item {
 		Places[strconv.Itoa(i)] = HTML(item.Name[0].Text)
 	}
@@ -100,7 +122,6 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 	descs := GetReviews(response.Items[0].Item)
 	pics := GetPhotoLinks(response.Items[0].Item)
 	coords := GetCoordinates(response.Items[0].Item)
-	data := make(map[string][]string)
 	data["descs"] = descs
 	data["pics"] = pics
 	data["coords"] = coords
