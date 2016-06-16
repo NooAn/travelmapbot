@@ -170,7 +170,8 @@ func PlacesInline(Places map[string]string, data map[string][]string, page int) 
 		data["descs"][page] = shortenDesc(description)
 	}
 
-	str := Places[strconv.Itoa(page)] + "\n"
+	str := "Место " + strconv.Itoa(page+1) + " из " + strconv.Itoa(len(Places)) + ": \n"
+	str += Places[strconv.Itoa(page)] + "\n"
 	str += HTML(data["descs"][page]) + " \n"
 	str += data["destins"][page]+" km away from you" + "\n"
 	str += data["pics"][page]
