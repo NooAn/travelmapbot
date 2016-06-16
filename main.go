@@ -47,7 +47,7 @@ func main() {
 			switch {
 			case Text == "/start":
 
-				msg := tgbotapi.NewMessage(ChatID, "Привет, " + name + "!")
+				msg := tgbotapi.NewMessage(ChatID, "Привет, "+name+"!")
 				bot.Send(msg)
 				msg = tgbotapi.NewMessage(ChatID, "Чтобы поделиться своими координатами, нажми на кнопку \"посмотреть, что рядом!\".")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
@@ -96,7 +96,7 @@ func main() {
 				bot.Send(msg)
 				*/
 				msg2 := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
-				bot.Send(msg2)			
+				bot.Send(msg2)
 				log.Printf("%s", "Map sent")
 
 			}
@@ -123,7 +123,6 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 		Places[strconv.Itoa(i)] = HTML(item.Name[0].Text)
 	}
 
-	
 	descs := GetReviews(response.Items[0].Item)
 	pics := GetPhotoLinks(response.Items[0].Item)
 	coords := GetCoordinates(response.Items[0].Item)
@@ -170,10 +169,10 @@ func PlacesInline(Places map[string]string, data map[string][]string, page int) 
 		data["descs"][page] = shortenDesc(description)
 	}
 
-	str := "Место " + strconv.Itoa(page+1) + " из " + strconv.Itoa(len(Places)) + ": \n"
+	str := "Место " + strconv.Itoa(page+1) + " из " + strconv.Itoa(len(Places)) + ": \n\n"
 	str += Places[strconv.Itoa(page)] + "\n"
 	str += HTML(data["descs"][page]) + " \n"
-	str += "На расстоянии " + data["destins"][page]+" км" + "\n"
+	str += "\nНа расстоянии " + data["destins"][page] + " км" + "\n"
 	str += data["pics"][page]
 	kb := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
