@@ -116,7 +116,7 @@ func shortenDesc(desc string) string {
 	return desc
 }
 
-func calculateDistance(userLoc, placeLoc string) int {
+func calculateDistance(userLoc, placeLoc string) string {
 	userLocation := StringToLocation(userLoc)
 	placeLocation := StringToLocation(placeLoc)
 
@@ -133,7 +133,9 @@ func calculateDistance(userLoc, placeLoc string) int {
 
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
-	return int(EARTH_RADIUS * c)
+	return strconv.FormatFloat(EARTH_RADIUS * c, 'f', 1, 64)
+
 }
+
 
 

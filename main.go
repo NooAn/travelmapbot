@@ -90,9 +90,11 @@ func main() {
 			} else if callBack.Title == "showMap" {
 				MAP := StringToLocation(data["coords"][callBack.Page])
 				// Send NewLocation or NewVenue?
-				farAway := strconv.Itoa(int(calculateDistance(GEO, data["coords"][callBack.Page]))) + " km away from you"
+				/* --- another (but not better?) way to show the distance ---
+				farAway := calculateDistance(GEO, data["coords"][callBack.Page]) + " km away from you"
 				msg := tgbotapi.NewMessage(int64(update.CallbackQuery.From.ID), farAway)
 				bot.Send(msg)
+				*/
 				msg2 := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
 				bot.Send(msg2)			
 				log.Printf("%s", "Map sent")
@@ -121,12 +123,19 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 		Places[strconv.Itoa(i)] = HTML(item.Name[0].Text)
 	}
 
+	
 	descs := GetReviews(response.Items[0].Item)
 	pics := GetPhotoLinks(response.Items[0].Item)
 	coords := GetCoordinates(response.Items[0].Item)
+
+	var destins []string
+	for _, geo := range coords {
+		destins = append(destins, calculateDistance(location, geo))
+	}
 	data["descs"] = descs
 	data["pics"] = pics
 	data["coords"] = coords
+	data["destins"] = destins
 	return Places, data
 
 }
@@ -163,6 +172,7 @@ func PlacesInline(Places map[string]string, data map[string][]string, page int) 
 
 	str := Places[strconv.Itoa(page)] + "\n"
 	str += HTML(data["descs"][page]) + " \n"
+	str += data["destins"][page]+" km away from you" + "\n"
 	str += data["pics"][page]
 	kb := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
