@@ -37,7 +37,7 @@ func main() {
 			ChatID := update.Message.Chat.ID
 			Text := update.Message.Text
 
-			Logf("[%s] %d %s", UserName, ChatID, Text)
+			Logf("[%s] %d %s", UserName, ChatID, Text) //@TODO: check if username is empty, then print the ID? but can we find out who's this using the ID?
 			Logf("Location user: %v", update.Message.Location)
 
 			name := update.Message.From.FirstName
@@ -47,16 +47,16 @@ func main() {
 			switch {
 			case Text == "/start":
 
-				msg := tgbotapi.NewMessage(ChatID, "Hello, "+name+"!")
+				msg := tgbotapi.NewMessage(ChatID, "Привет, " + name + "!")
 				bot.Send(msg)
-				msg = tgbotapi.NewMessage(ChatID, "Give me your location!")
+				msg = tgbotapi.NewMessage(ChatID, "Чтобы поделиться своими координатами, нажми на кнопку \"посмотреть, что рядом!\".")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Посмотреть, что рядом!")))
 				bot.Send(msg)
 				break
 			case Text == "/help":
 				Logf("/help " + UserName)
-				msg := tgbotapi.NewMessage(ChatID, "Отправь мне координаты с мобильного телефона и я пришлю тебе интересные достопримичательности.")
+				msg := tgbotapi.NewMessage(ChatID, "Поделись своими координатами с мобильного устройства и я покажу тебе интересные места неподалеку. :)")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Посмотреть, что рядом!")))
 				bot.Send(msg)
@@ -71,8 +71,8 @@ func main() {
 				bot.Send(msg)
 				break
 			default:
-				Log("Default, none action")
-				msg := tgbotapi.NewMessage(ChatID, "Give me your location, on Gps in mobile and click button down!")
+				Log("Default, no action")
+				msg := tgbotapi.NewMessage(ChatID, "Чтобы поделиться своими координатами, нажми на кнопку ниже.")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Отправить координаты!")))
 				bot.Send(msg)
@@ -109,7 +109,7 @@ func getPlaces(location string) (map[string]string, map[string][]string) {
 	Places := make(map[string]string)
 	data := make(map[string][]string)
 	response := getList(location, radius)
-	if response.Items == nil { // Если данные не пришли, то отдаем пустые, без этого условия падает
+	if response.Items == nil { // Если данные не пришли, то отдаем пустые, без этого условия падает UPD TODO: при получении пустых списков выводить сообщение
 		return Places, data
 	}
 	if Len(response.Items[0].Item) == 0 {
@@ -173,12 +173,12 @@ func PlacesInline(Places map[string]string, data map[string][]string, page int) 
 	str := "Место " + strconv.Itoa(page+1) + " из " + strconv.Itoa(len(Places)) + ": \n"
 	str += Places[strconv.Itoa(page)] + "\n"
 	str += HTML(data["descs"][page]) + " \n"
-	str += data["destins"][page]+" km away from you" + "\n"
+	str += "На расстоянии " + data["destins"][page]+" км" + "\n"
 	str += data["pics"][page]
 	kb := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("{ \"title\":\""+"places"+"\", \"page\":%d}", prevPage)),
-			tgbotapi.NewInlineKeyboardButtonData("Map", fmt.Sprintf("{ \"title\":\""+"showMap"+"\", \"page\":%d}", page)),
+			tgbotapi.NewInlineKeyboardButtonData("Карта", fmt.Sprintf("{ \"title\":\""+"showMap"+"\", \"page\":%d}", page)),
 			tgbotapi.NewInlineKeyboardButtonData(">", fmt.Sprintf("{ \"title\":\""+"places"+"\", \"page\":%d}", nextPage))))
 
 	return str, kb
