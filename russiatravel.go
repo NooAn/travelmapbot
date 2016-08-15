@@ -176,6 +176,10 @@ func GetPhotoLinks(items []Item) []string {
 	for _, i := range items {
 			res = append(res, i.Image)
 	}
+
+	if res == nil {
+		res = []string
+	}
 	return res
 }
 
