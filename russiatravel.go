@@ -178,8 +178,9 @@ func GetPhotoLinks(items []Item) []string {
 	}
 
 	if res == nil {
-		res = []string
+		res = res[:0]
 	}
+
 	return res
 }
 
