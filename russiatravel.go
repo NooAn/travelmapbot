@@ -21,10 +21,11 @@ type APIResponse struct {
 // every place object that can be found and it contains almost everything.
 type Item struct {
 	XMLName         xml.Name        `xml:"item"`
-	ItemID          uint32          `xml:"id,attr"`
+	ItemID          string          `xml:"id,attr"`
+	ItemName 		string 			`xml:"name,attr"`
 	Image           string          `xml:"image,attr"`
 	Geo             string          `xml:"geo,attr"`
-	Types           []types         `xml:"types"`
+	Types           []Types         `xml:"types"`
 	Name            []name          `xml:"name"`
 	addressCountry  string          `xml:"addressCountry"`
 	addressLocality string          `xml:"addressLocality"`
@@ -49,9 +50,13 @@ type photo struct {
 	Link    string   `xml:"file"`
 }
 
-type types struct {
+type Types struct {
 	XMLName xml.Name `xml:"types"`
-	Type    []string `xml:"type"`
+	Type    []TypeID`xml:"type"`
+}
+ 
+type TypeID struct {
+	Data string `xml:",chardata"`
 }
 
 type name struct {
@@ -90,7 +95,7 @@ type Request struct {
 	Items         []items         `xml:"items,omitempty"`
 	addressRegion []addressRegion `xml:"addressRegion,omitempty"`
 	Point         []Point         `xml:"point,omitempty"`
-	objectType    []objectType    `xml:"objectType,omitempty"`
+	ObjectType    []ObjectType    `xml:"objectType,omitempty"`
 	Attributes    []Attributes    `xml:"attributes"`
 }
 type Attributes struct {
@@ -103,8 +108,9 @@ type Attributes struct {
 	//addressRegion []addressRegion `xml:"addressRegion"`
 }
 
-type objectType struct {
-	TypeID string `xml:"id"`
+type ObjectType struct {
+	XMLName xml.Name `xml:"objectType"`
+	TypeID   string `xml:"id"`
 }
 
 type addressRegion struct {
@@ -135,6 +141,21 @@ func CreateRequestDependingOnRadius(radius int, geo string) []byte {
 		Logf("error: %v\n", err)
 	}
 
+	return output
+}
+
+func CreateRequestDependingOnType(radius int, geo string, usrType string) []byte {
+	v := &Request{Action: "get-objects-for-update"}
+	newPoint := Point{Geo: geo, Radius: radius}
+	v.Point = append(v.Point, newPoint)
+	v.ObjectType = append(v.ObjectType, ObjectType{TypeID: usrType})
+	v.Attributes = append(v.Attributes, Attributes{Review: &RReview{Text: ""}})
+
+	output, err := xml.MarshalIndent(v, "  ", "    ")
+	if err != nil {
+		Logf("error: %v\n", err)
+	}
+	
 	return output
 }
 
@@ -196,16 +217,68 @@ func GetCoordinates(items []Item) []string {
 func GetReviews(items []Item) []string {
 	var res []string
 	for _, i := range items {
-		res = append(res, i.Review[0].Data[0].Data)//FIXME
+		res = append(res, i.Review[0].Data[0].Data)
 	}
 	return res
 }
 
-func Len(items []Item) int {
-	lenght := 0
-	for range items {
-		lenght += 1
+func GetTypes(items []Item) []string {
+	var res []string
+	for _, i := range items {
+		res = append(res, i.Types[0].RType[0].Data)
 	}
 
-	return lenght
+	return res
+}
+
+
+func GetTypeNames(items []Item) map[string][]string {
+	var IDs []string
+	var names []string
+	res := make(map[string][]string)
+	for _, i := range items {
+		IDs = append(IDs, i.ItemID)
+		names = append(names, i.ItemName)
+	}
+	res["IDs"] = IDs
+	res["names"] = names
+
+	return res
+
+}
+
+func GetListOfAllPlaces(coords string, radius int) APIResponse {
+	newRequest := CreateRequestDependingOnRadius(radius, coords)
+	xmlbody := xml.Header + string(newRequest)
+	body := SendRequest(xmlbody)
+	resp := GetResponse(body)
+
+	return resp
+}
+
+func GetListOfChosenTypePlaces(coords string, radius int, usrType string) APIResponse {
+	newRequest := CreateRequestDependingOnType(radius, coords, usrType)
+	xmlbody := xml.Header + string(newRequest)
+	body := SendRequest(xmlbody)
+	resp := GetResponse(body)
+
+	return resp
+}	
+
+func GetListOfTypes() APIResponse {
+	newRequest := "<request action=\"get-library\" type=\"object-type\" />"
+	xmlbody := xml.Header + string(newRequest)
+	body := SendRequest(xmlbody)
+	resp := GetResponse(body)
+
+	return resp
+}
+
+func Len(items []Item) int {
+	length := 0
+	for range items {
+		length += 1
+	}
+
+	return length
 }
