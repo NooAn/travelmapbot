@@ -13,6 +13,7 @@ import (
 )
 const (
 	EARTH_RADIUS = 6371
+	MAX_LENGTH = 2000
 	)	
 
 // taken from https://github.com/kennygrant/sanitize
@@ -107,7 +108,7 @@ func StringToLocation(coords string) Location {
 
 func shortenDesc(desc string) string {
 	log.Printf("%s", "Description shorted")
-	for len(desc) > MIN_COUNT_SYMBOL {
+	for len(desc) > MAX_LENGTH {
 		desc = desc[:len(desc)-1]
 		for string(desc[len(desc)-1]) != "." {
 			desc = desc[:len(desc)-1]
