@@ -106,13 +106,19 @@ func StringToLocation(coords string) Location {
 	return loc
 }
 
+func ShortenUntilDot(text string) string{
+	text = text[:len(text)-1]
+	for (string(text[len(text)-1]) != ".") && (len(text)>1){
+		text = text[:len(text)-1]
+	}
+
+	return text
+}
+
 func shortenDesc(desc string) string {
 	log.Printf("%s", "Description shorted")
 	for len(desc) > MAX_LENGTH {
-		desc = desc[:len(desc)-1]
-		for string(desc[len(desc)-1]) != "." {
-			desc = desc[:len(desc)-1]
-		}
+		desc = ShortenUntilDot(desc)
 	}
 	return desc
 }

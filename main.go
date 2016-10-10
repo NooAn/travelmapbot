@@ -51,10 +51,9 @@ func main() {
 				name = "Путешественник"
 			}
 
-			integerText, textIsNotIntegerError := strconv.Atoi(Text)
-
 			switch {
-			case  textIsNotIntegerError == nil && ActiveSessionFlag:
+			case ActiveSessionFlag:
+				integerText := GetIntegerOfReply(Text)
 				if integerText <= NumberOfFoundPlaces+1 && integerText > 0 {
 					if integerText == NumberOfFoundPlaces+1 {
 						str, kb := PlacesInline(namesList, data, 0)
@@ -78,7 +77,8 @@ func main() {
 						ActiveSessionFlag = false
 					}
 				} else {
-					msg := tgbotapi.NewMessage(ChatID, "Попробуй еще раз. Нужно ввести просто число, без посторонних знаков.")
+					msg := tgbotapi.NewMessage(ChatID, "Попробуй еще раз. Не нужно ничего писать, просто нажми кнопку.")
+					msg.ReplyMarkup = TypesKeyboard(data["types"], NumberOfFoundPlaces)
 					bot.Send(msg)
 				}
 				break
@@ -101,12 +101,9 @@ func main() {
 				GEO = LocationToString(update.Message.Location)
 				namesList, data, types = getAllPlaces(GEO) // ODIN RAZ ETO DELAEM
 				NumberOfFoundPlaces = len(data["types"])
-
-				msg := tgbotapi.NewMessage(ChatID, "Вот, что я нашел недалеко от тебя. Что показать? (Введите только число)")  // social engineering huehue
-				bot.Send(msg)
-				str:= ListOfTypesToSend(data["types"])
-				str = str + (strconv.Itoa(NumberOfFoundPlaces+1) + ".Показать всё!")
-				msg = tgbotapi.NewMessage(ChatID, str)
+				
+				msg := tgbotapi.NewMessage(ChatID, "Вот, что я нашел недалеко от тебя. Что показать?")
+				msg.ReplyMarkup = TypesKeyboard(data["types"], NumberOfFoundPlaces)
 				bot.Send(msg)
 
 				ActiveSessionFlag = true
@@ -271,4 +268,33 @@ func makeSet(listOfElements []string) []string {
 		finalSet = append(finalSet, name)
 	} 
 	return finalSet
+}
+
+func TypesKeyboard(types []string, NumberOfFoundPlaces int) tgbotapi.ReplyKeyboardMarkup {
+	var buttons [][]tgbotapi.KeyboardButton
+
+	for i, t:= range types {
+		buttons = append(buttons, []tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(strconv.Itoa(i+1) + "." + t + "\n")})
+	}
+	buttons = append(buttons, []tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(strconv.Itoa(NumberOfFoundPlaces+1) + ".Показать всё!")})
+
+	return tgbotapi.ReplyKeyboardMarkup{
+		ResizeKeyboard: true,
+		Keyboard:      buttons,
+		OneTimeKeyboard: true,
+	}
+}
+
+
+func GetIntegerOfReply(text string) int {
+	text = ShortenUntilDot(text)
+	text = text[:len(text)-1]
+	var intToReturn int 
+	intToReturn, fErr := strconv.Atoi(text)
+	if fErr != nil{
+		Logf("ERROR! ", erree, "\n Did this idiot text something instead of pushing a button?!\n")
+		return 0
+	} else {
+	return intToReturn
+	}	
 }
