@@ -21,7 +21,7 @@ type APIResponse struct {
 type Item struct {
 	XMLName         xml.Name        `xml:"item"`
 	ItemID          string          `xml:"id,attr"`
-	ItemName 		string 			`xml:"name,attr"`
+	ItemName        string          `xml:"name,attr"`
 	Image           string          `xml:"image,attr"`
 	Geo             string          `xml:"geo,attr"`
 	Types           []Types         `xml:"types"`
@@ -51,9 +51,9 @@ type photo struct {
 
 type Types struct {
 	XMLName xml.Name `xml:"types"`
-	Type    []TypeID`xml:"type"`
+	RType   []TypeID `xml:"type"`
 }
- 
+
 type TypeID struct {
 	Data string `xml:",chardata"`
 }
@@ -109,7 +109,7 @@ type Attributes struct {
 
 type ObjectType struct {
 	XMLName xml.Name `xml:"objectType"`
-	TypeID   string `xml:"id"`
+	TypeID  string   `xml:"id"`
 }
 
 type addressRegion struct {
@@ -154,7 +154,7 @@ func CreateRequestDependingOnType(radius int, geo string, usrType string) []byte
 	if err != nil {
 		Logf("error: %v\n", err)
 	}
-	
+
 	return output
 }
 
@@ -194,7 +194,7 @@ func GetNames(items []Item) []string {
 func GetPhotoLinks(items []Item) []string {
 	var res []string
 	for _, i := range items {
-			res = append(res, i.Image)
+		res = append(res, i.Image)
 	}
 
 	if res == nil {
@@ -230,7 +230,6 @@ func GetTypes(items []Item) []string {
 	return res
 }
 
-
 func GetTypeNames(items []Item) map[string][]string {
 	var IDs []string
 	var names []string
@@ -262,7 +261,7 @@ func GetListOfChosenTypePlaces(coords string, radius int, usrType string) APIRes
 	resp := GetResponse(body)
 
 	return resp
-}	
+}
 
 func GetListOfTypes() APIResponse {
 	newRequest := "<request action=\"get-library\" type=\"object-type\" />"

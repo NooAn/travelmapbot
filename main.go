@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+
 	"github.com/telegram-bot-api"
 )
 
@@ -15,7 +16,7 @@ type CallbackQueryPageData struct {
 
 func main() {
 
-	bot, err := tgbotapi.NewBotAPI(Token)
+	bot, err := tgbotapi.NewBotAPI(TOKEN)
 	if err != nil {
 		LogPanic(err)
 	}
@@ -33,7 +34,7 @@ func main() {
 	var data map[string][]string
 	var types map[string][]string
 
-	var ActiveSessionFlag bool 
+	var ActiveSessionFlag bool
 	// --------------------------------------------------------
 
 	for update := range updates {
@@ -65,7 +66,7 @@ func main() {
 						choice := data["types"][integerText-1]
 						var chosenType string
 						for i, t := range types["names"] {
-							if t == choice{
+							if t == choice {
 								chosenType = types["IDs"][i]
 							}
 						}
@@ -101,7 +102,7 @@ func main() {
 				GEO = LocationToString(update.Message.Location)
 				namesList, data, types = getAllPlaces(GEO) // ODIN RAZ ETO DELAEM
 				NumberOfFoundPlaces = len(data["types"])
-				
+
 				msg := tgbotapi.NewMessage(ChatID, "Вот, что я нашел недалеко от тебя. Что показать?")
 				msg.ReplyMarkup = TypesKeyboard(data["types"], NumberOfFoundPlaces)
 				bot.Send(msg)
@@ -110,7 +111,7 @@ func main() {
 				break
 			default:
 				Log("Default, no action")
-				msg := tgbotapi.NewMessage(ChatID, "Чтобы поделиться своими координатами, нажми на кнопку ниже.")
+				msg := tgbotapi.NewMessage(ChatID, "Чтобы поделиться своими координатами, нажми на своем мобильном устройстве кнопку ниже.")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 					tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButtonLocation("Отправить координаты!")))
 				bot.Send(msg)
@@ -127,7 +128,7 @@ func main() {
 			} else if callBack.Title == "showMap" {
 				MAP := StringToLocation(data["coords"][callBack.Page])
 				msg2 := tgbotapi.NewVenue(int64(update.CallbackQuery.From.ID), namesList[strconv.Itoa(callBack.Page)], "", MAP.Latitude, MAP.Longitude)
-				bot.Send(msg2)			
+				bot.Send(msg2)
 				log.Printf("%s", "Map sent")
 			}
 		}
@@ -135,7 +136,7 @@ func main() {
 }
 
 // this function is used for getting ALL the places that are around.
-func getAllPlaces(location string) (map[string]string, map[string][]string, map[string][]string) {  // not sure if should NOT return this many args
+func getAllPlaces(location string) (map[string]string, map[string][]string, map[string][]string) { // not sure if should NOT return this many args
 	radius := 10
 	response := GetListOfAllPlaces(location, radius)
 	for Len(response.Items[0].Item) == 0 {
@@ -151,7 +152,7 @@ func getAllPlaces(location string) (map[string]string, map[string][]string, map[
 	descs := GetReviews(response.Items[0].Item)
 	pics := GetPhotoLinks(response.Items[0].Item)
 	coords := GetCoordinates(response.Items[0].Item)
-	
+
 	typeIDsWeHave := GetTypes(response.Items[0].Item)
 	typeNames := make(map[string][]string)
 	typeNames = GetTypeNames(GetListOfTypes().Items[0].Item)
@@ -160,7 +161,7 @@ func getAllPlaces(location string) (map[string]string, map[string][]string, map[
 	var allTypesWeHave []string
 	for _, typeID := range typeIDsWeHave {
 		for i, id := range typeNames["IDs"] {
-			if (typeID==id) {
+			if typeID == id {
 				allTypesWeHave = append(allTypesWeHave, typeNames["names"][i])
 			}
 		}
@@ -178,7 +179,7 @@ func getAllPlaces(location string) (map[string]string, map[string][]string, map[
 	}
 	data["destins"] = destins
 	data["types"] = allTypesWeHaveSet
-	return Places, data, typeNames 
+	return Places, data, typeNames
 }
 
 func getChosenTypePlaces(location string, usrType string) (map[string]string, map[string][]string) {
@@ -197,7 +198,7 @@ func getChosenTypePlaces(location string, usrType string) (map[string]string, ma
 	descs := GetReviews(response.Items[0].Item)
 	pics := GetPhotoLinks(response.Items[0].Item)
 	coords := GetCoordinates(response.Items[0].Item)
-	
+
 	data := make(map[string][]string)
 	data["descs"] = descs
 	data["pics"] = pics
@@ -246,7 +247,7 @@ func PlacesInline(Places map[string]string, data map[string][]string, page int) 
 	return str, kb
 }
 
-func ListOfTypesToSend(types []string) string {  // Still not sure about the method's name
+func ListOfTypesToSend(types []string) string { // Still not sure about the method's name
 	var str string
 	for i, t := range types {
 		str += strconv.Itoa(i+1) + "." + t + "\n"
@@ -259,42 +260,41 @@ func makeSet(listOfElements []string) []string {
 	Set := make(map[string]bool)
 	Set[listOfElements[0]] = true
 	for _, x := range listOfElements {
-		if !(Set[x]){
+		if !(Set[x]) {
 			Set[x] = true
 		}
 	}
 	finalSet := make([]string, 0, len(Set))
 	for name := range Set {
 		finalSet = append(finalSet, name)
-	} 
+	}
 	return finalSet
 }
 
 func TypesKeyboard(types []string, NumberOfFoundPlaces int) tgbotapi.ReplyKeyboardMarkup {
 	var buttons [][]tgbotapi.KeyboardButton
 
-	for i, t:= range types {
+	for i, t := range types {
 		buttons = append(buttons, []tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(strconv.Itoa(i+1) + "." + t + "\n")})
 	}
 	buttons = append(buttons, []tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(strconv.Itoa(NumberOfFoundPlaces+1) + ".Показать всё!")})
 
 	return tgbotapi.ReplyKeyboardMarkup{
-		ResizeKeyboard: true,
-		Keyboard:      buttons,
+		ResizeKeyboard:  true,
+		Keyboard:        buttons,
 		OneTimeKeyboard: true,
 	}
 }
 
-
 func GetIntegerOfReply(text string) int {
 	text = ShortenUntilDot(text)
 	text = text[:len(text)-1]
-	var intToReturn int 
+	var intToReturn int
 	intToReturn, fErr := strconv.Atoi(text)
-	if fErr != nil{
-		Logf("ERROR! ", erree, "\n Did this idiot text something instead of pushing a button?!\n")
+	if fErr != nil {
+		Logf("ERROR! ", fErr, "\n Did this idiot text something instead of pushing a button?!\n")
 		return 0
 	} else {
-	return intToReturn
-	}	
+		return intToReturn
+	}
 }
